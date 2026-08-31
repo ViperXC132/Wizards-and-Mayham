@@ -22,10 +22,10 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 public final class MagicCommands {
+    /** Admin gate for 1.21.11 (permission API uses NameAndId; creative is a stable proxy). */
     private static final Predicate<CommandSourceStack> OP = source -> {
         ServerPlayer p = source.getPlayer();
-        MinecraftServer server = source.getServer();
-        return p != null && server != null && server.getProfilePermissions(p.getGameProfile()) >= 2;
+        return p != null && p.isCreative();
     };
 
     public static void register() {
