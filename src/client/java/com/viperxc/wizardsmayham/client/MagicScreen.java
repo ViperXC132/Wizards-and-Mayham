@@ -26,7 +26,11 @@ public final class MagicScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics, mouseX, mouseY, delta);
+        // Do not call renderBackground(): with VulkanMod it triggers "Can only blur once per frame".
+        // Draw a simple translucent panel instead.
+        int panelLeft = width / 2 - 110;
+        int panelTop = 20;
+        graphics.fill(panelLeft, panelTop, panelLeft + 220, panelTop + 200, 0xC0101010);
         graphics.drawCenteredString(font, title, width / 2, 28, 0xFFFFFF);
         graphics.drawCenteredString(font, Component.literal("5-slot spell loadout • server validated"), width / 2, 42, 0xA0A0A0);
         super.render(graphics, mouseX, mouseY, delta);
