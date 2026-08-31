@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "wizardsmayham",
+  "version": "${version}",
+  "name": "Wizards and Mayham",
+  "description": "A Minecraft-native magic and adventure RPG for Fabric.",
+  "authors": ["ViperXC132"],
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.viperxc.wizardsmayham.WizardsMayham"
+    ],
+    "client": [
+      "com.viperxc.wizardsmayham.client.WizardsMayhamClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": ">=0.141.0+1.21.11"
+  }
+}
