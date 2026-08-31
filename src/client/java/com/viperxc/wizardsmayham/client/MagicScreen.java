@@ -20,14 +20,20 @@ public final class MagicScreen extends Screen {
     }
 
     private void cycle(int slot) {
-        if (minecraft != null && minecraft.player != null && minecraft.getConnection() != null)
-            minecraft.getConnection().sendCommand("magic cycle " + slot);
+        try {
+            if (minecraft == null || minecraft.player == null) return;
+            var connection = minecraft.getConnection();
+            if (connection != null) {
+                connection.sendCommand("magic cycle " + slot);
+            }
+        } catch (Throwable ignored) {
+            // Never crash the client from a GUI button.
+        }
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        // Do not call renderBackground(): with VulkanMod it triggers "Can only blur once per frame".
-        // Draw a simple translucent panel instead.
+        // No renderBackground() — VulkanMod allows only one blur per frame.
         int panelLeft = width / 2 - 110;
         int panelTop = 20;
         graphics.fill(panelLeft, panelTop, panelLeft + 220, panelTop + 200, 0xC0101010);
