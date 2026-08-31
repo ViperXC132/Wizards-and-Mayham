@@ -2,11 +2,14 @@ package com.viperxc.wizardsmayham.command;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.viperxc.wizardsmayham.boss.BossManager;
 import com.viperxc.wizardsmayham.item.ModItems;
 import com.viperxc.wizardsmayham.magic.MagicData;
 import com.viperxc.wizardsmayham.magic.MagicDataStore;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -17,11 +20,16 @@ public final class MagicCommands {
                         .then(Commands.literal("choose")
                                 .then(Commands.literal("magician").executes(ctx -> choose(ctx.getSource().getPlayerOrException(), true)))
                                 .then(Commands.literal("human").executes(ctx -> choose(ctx.getSource().getPlayerOrException(), false))))
-                        .then(Commands.literal("give")
-                                .requires(source -> source.hasPermission(2))
+                        .then(Commands.literal("give").requires(source -> source.hasPermission(2))
                                 .then(Commands.literal("wand").executes(ctx -> give(ctx.getSource().getPlayerOrException(), ModItems.MAGIC_WAND)))
                                 .then(Commands.literal("book").executes(ctx -> give(ctx.getSource().getPlayerOrException(), ModItems.ANCIENT_MAGIC_BOOK)))
                                 .then(Commands.literal("restorer").executes(ctx -> give(ctx.getSource().getPlayerOrException(), ModItems.MANA_RESTORER))))
+                        .then(Commands.literal("summon").requires(source -> source.hasPermission(2))
+                                .then(Commands.argument("boss", StringArgumentType.word()).executes(ctx -> {
+                                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                                    var boss = BossManager.summon(p.serverLevel(), BlockPos.containing(p.position()), StringArgumentType.getString(ctx, "boss"));
+                                    return boss == null ? 0 : ok(ctx, "Boss summoned: " + boss.getName().getString());
+                                })))
                         .then(Commands.literal("unlock").requires(source -> source.hasPermission(2))
                                 .then(Commands.literal("all").executes(ctx -> { MagicData d = data(ctx.getSource().getPlayerOrException()); d.unlockAll(); dirty(ctx.getSource().getServer()); return ok(ctx, "All spells unlocked."); })))
                         .then(Commands.literal("money").requires(source -> source.hasPermission(2)).then(Commands.argument("amount", LongArgumentType.longArg(0)).executes(ctx -> { MagicData d=data(ctx.getSource().getPlayerOrException()); d.money(LongArgumentType.getLong(ctx,"amount")); dirty(ctx.getSource().getServer()); return ok(ctx,"Money set to "+d.money()+"."); })))
@@ -29,7 +37,8 @@ public final class MagicCommands {
                         .then(Commands.literal("mana").requires(source -> source.hasPermission(2)).then(Commands.argument("amount", IntegerArgumentType.integer(0)).executes(ctx -> { MagicData d=data(ctx.getSource().getPlayerOrException()); d.mana(IntegerArgumentType.getInteger(ctx,"amount")); dirty(ctx.getSource().getServer()); return ok(ctx,"Mana set."); })))
                         .then(Commands.literal("energy").requires(source -> source.hasPermission(2)).then(Commands.argument("amount", IntegerArgumentType.integer(0)).executes(ctx -> { MagicData d=data(ctx.getSource().getPlayerOrException()); d.energy(IntegerArgumentType.getInteger(ctx,"amount")); dirty(ctx.getSource().getServer()); return ok(ctx,"Energy set."); })))
                         .then(Commands.literal("worthiness").requires(source -> source.hasPermission(2)).then(Commands.argument("amount", IntegerArgumentType.integer(0)).executes(ctx -> { MagicData d=data(ctx.getSource().getPlayerOrException()); d.worthiness(IntegerArgumentType.getInteger(ctx,"amount")); dirty(ctx.getSource().getServer()); return ok(ctx,"Worthiness set."); })))
-                        .then(Commands.literal("help").executes(ctx -> { ctx.getSource().sendSuccess(() -> Component.literal("/magic choose <magician|human> | /magic config | /magic help"), false); return 1; }))
+                        .then(Commands.literal("config").requires(source -> source.hasPermission(2)).executes(ctx -> ok(ctx, "Admin configuration framework is enabled; values are server-authoritative.")))
+                        .then(Commands.literal("help").executes(ctx -> { ctx.getSource().sendSuccess(() -> Component.literal("/magic choose <magician|human> | /magic summon <boss> | /magic give | /magic config | /magic help"), false); return 1; }))
         ));
     }
 
