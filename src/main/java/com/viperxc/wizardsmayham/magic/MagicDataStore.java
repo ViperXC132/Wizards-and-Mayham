@@ -1,10 +1,11 @@
 package com.viperxc.wizardsmayham.magic;
 
+import com.mojang.serialization.Codec;
 import com.viperxc.wizardsmayham.WizardsMayham;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +15,10 @@ import java.util.UUID;
 public final class MagicDataStore extends SavedData {
     private final Map<UUID, MagicData> players = new HashMap<>();
 
-    private static final Factory<MagicDataStore> FACTORY = new Factory<>(MagicDataStore::new, MagicDataStore::load, null);
+    private static final Codec<MagicDataStore> CODEC = CompoundTag.CODEC.xmap(MagicDataStore::fromTag, MagicDataStore::toTag);
+    private static final SavedDataType<MagicDataStore> TYPE = new SavedDataType<>(WizardsMayham.MOD_ID + "_player_magic", MagicDataStore::new, CODEC, null);
 
-    private static MagicDataStore load(CompoundTag tag, net.minecraft.core.RegistryAccess registries) {
+    private static MagicDataStore fromTag(CompoundTag tag) {
         MagicDataStore store = new MagicDataStore();
         CompoundTag all = tag.getCompoundOrEmpty("Players");
         for (String key : all.keySet()) {
@@ -29,8 +31,7 @@ public final class MagicDataStore extends SavedData {
     private MagicDataStore() { }
 
     public static MagicDataStore get(MinecraftServer server) {
-        ServerLevel level = server.overworld();
-        return level.getDataStorage().computeIfAbsent(FACTORY, WizardsMayham.MOD_ID + "_player_magic");
+        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
     public MagicData get(UUID uuid) {
@@ -39,8 +40,16 @@ public final class MagicDataStore extends SavedData {
 
     public void markDirty() { setDirty(); }
 
+    private CompoundTag toTag() {
+        CompoundTag tag = new CompoundTag();
+        CompoundTag all = new CompoundTag();
+        players.forEach((uuid, data) -> all.put(uuid.toString(), data.toTag()));
+        tag.put("Players", all);
+        return tag;
+    }
+
     @Override
-    public CompoundTag save(CompoundTag tag, net.minecraft.core.RegistryAccess registries) {
+    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag all = new CompoundTag();
         players.forEach((uuid, data) -> all.put(uuid.toString(), data.toTag()));
         tag.put("Players", all);
