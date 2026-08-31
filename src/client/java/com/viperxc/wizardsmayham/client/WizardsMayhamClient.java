@@ -5,14 +5,14 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class WizardsMayhamClient implements ClientModInitializer {
     private static final KeyMapping OPEN_MAGIC = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.wizardsmayham.open_magic",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_G,
-            KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath("wizardsmayham", "magic"))
+            KeyMapping.Category.register(Identifier.fromNamespaceAndPath("wizardsmayham", "magic"))
     ));
 
     @Override

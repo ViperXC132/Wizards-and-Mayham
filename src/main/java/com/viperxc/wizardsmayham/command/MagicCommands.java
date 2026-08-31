@@ -24,7 +24,8 @@ import java.util.function.Predicate;
 public final class MagicCommands {
     private static final Predicate<CommandSourceStack> OP = source -> {
         ServerPlayer p = source.getPlayer();
-        return p != null && p.hasPermissions(2);
+        MinecraftServer server = source.getServer();
+        return p != null && server != null && server.getProfilePermissions(p.getGameProfile()) >= 2;
     };
 
     public static void register() {
