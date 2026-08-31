@@ -23,8 +23,7 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    // Use Yarn mappings instead of Loom's generated layered Mojang mappings.
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
@@ -48,8 +47,11 @@ java {
 
 jar {
     inputs.property "archivesName", project.archives_base_name
-    from("LICENSE") {
-        rename { "${it}_${project.archives_base_name}" }
+    // LICENSE file optional; skip if missing so the jar task does not fail
+    if (file("LICENSE").exists()) {
+        from("LICENSE") {
+            rename { "${it}_${project.archives_base_name}" }
+        }
     }
 }
 
