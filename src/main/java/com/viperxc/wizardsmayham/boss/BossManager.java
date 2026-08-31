@@ -12,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
@@ -68,12 +69,18 @@ public final class BossManager {
                 dead.add(entry.getKey());
                 continue;
             }
-            active.bar().setProgress(Math.max(0.0f, entity.getHealth() / entity.getMaxHealth()));
+            float max = entity.getMaxHealth();
+            active.bar().setProgress(max <= 0 ? 0f : Math.max(0.0f, entity.getHealth() / max));
             for (ServerPlayer player : level.players()) {
                 if (player.distanceToSqr(entity) < 128 * 128) active.bar().addPlayer(player);
                 else active.bar().removePlayer(player);
             }
-            if (entity.tickCount % 400 == 0) specialAbility(level, active);
+            if (entity.tickCount % 400 == 0) {
+                try {
+                    specialAbility(level, active);
+                } catch (Throwable ignored) {
+                }
+            }
         }
         dead.forEach(ACTIVE::remove);
         if (naturalCooldown > 0) naturalCooldown--;
@@ -81,7 +88,6 @@ public final class BossManager {
 
     private static void specialAbility(ServerLevel level, Active active) {
         LivingEntity boss = active.entity();
-        // Area damage for all bosses (no hard dependency on specific entity subclasses)
         double radius = EntityType.RAVAGER.equals(boss.getType()) ? 5.0 : 7.0;
         float dmg = EntityType.RAVAGER.equals(boss.getType()) ? 12.0f : 8.0f;
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, boss.getBoundingBox().inflate(radius), e -> e != boss && e.isAlive())) {
@@ -95,7 +101,9 @@ public final class BossManager {
         int x = player.blockPosition().getX() + level.random.nextInt(1001) - 500;
         int z = player.blockPosition().getZ() + level.random.nextInt(1001) - 500;
         BlockPos pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
-        if (!level.getBlockState(pos.below()).isSolidRender()) return;
+        BlockState below = level.getBlockState(pos.below());
+        // Avoid API variants of isSolidRender; require a non-air solid-ish floor.
+        if (below.isAir() || !below.getFluidState().isEmpty()) return;
         if (NATURAL_SPAWN_HISTORY.stream().anyMatch(old -> old.distSqr(pos) < 2000L * 2000L)) return;
         BossSpec spec = BOSSES.get(level.random.nextInt(BOSSES.size()));
         if (summon(level, pos, spec.id()) != null) {
