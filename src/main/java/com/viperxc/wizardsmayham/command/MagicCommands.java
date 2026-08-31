@@ -22,19 +22,17 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 public final class MagicCommands {
-    /** Admin gate: creative mode or singleplayer world owner (1.21.11-safe). */
+    /** Admin gate: creative only (1.21.11 NameAndId-safe; no GameProfile owner API). */
     private static final Predicate<CommandSourceStack> OP = source -> {
         ServerPlayer p = source.getPlayer();
-        if (p == null) return false;
-        if (p.isCreative()) return true;
-        MinecraftServer server = source.getServer();
-        return server != null && server.isSingleplayerOwner(p.getGameProfile());
+        return p != null && p.isCreative();
     };
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 Commands.literal("magic")
-                        .then(Commands.literal("choose")
+                        // Internal: used by client path GUIs only (not listed in help).
+                        .then(Commands.literal("setpath")
                                 .then(Commands.literal("magician").executes(ctx -> choose(ctx.getSource().getPlayerOrException(), true)))
                                 .then(Commands.literal("human").executes(ctx -> choose(ctx.getSource().getPlayerOrException(), false))))
                         .then(Commands.literal("give").requires(OP)
@@ -91,11 +89,10 @@ public final class MagicCommands {
                                     dirty(serverOf(ctx.getSource().getPlayerOrException()));
                                     return ok(ctx, "Worthiness set.");
                                 })))
-                        // Available in all gamemodes (no OP gate).
                         .then(Commands.literal("config")
                                 .executes(ctx -> ok(ctx, "Admin configuration framework is enabled; values are server-authoritative.")))
                         .then(Commands.literal("help").executes(ctx -> {
-                            ctx.getSource().sendSuccess(() -> Component.literal("/magic choose <magician|human> | /magic cycle <slot> | /magic summon <boss> | /magic give | /magic config | /magic help"), false);
+                            ctx.getSource().sendSuccess(() -> Component.literal("/magic cycle <slot> | /magic config | /magic help  (path is chosen in the G-key GUI)"), false);
                             return 1;
                         }))
         ));
@@ -108,7 +105,7 @@ public final class MagicCommands {
     private static int choose(ServerPlayer player, boolean magician) {
         MagicData d = data(player);
         if (d.decided()) {
-            player.sendSystemMessage(Component.literal("Your path is already chosen. An admin can override it."));
+            player.sendSystemMessage(Component.literal("Your path is already chosen."));
             return 0;
         }
         d.decide(magician);
@@ -126,7 +123,7 @@ public final class MagicCommands {
     private static int cycle(ServerPlayer player, int slot) {
         MagicData d = data(player);
         if (!d.magician()) {
-            player.sendSystemMessage(Component.literal("Only magicians can cycle spells. Use /magic choose magician"));
+            player.sendSystemMessage(Component.literal("Only magicians can cycle spells. Choose your path with G."));
             return 0;
         }
         var spells = SpellRegistry.all().values().stream().toList();
