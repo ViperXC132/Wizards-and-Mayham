@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.15-SNAPSHOT'
+    id 'fabric-loom' version '1.15.5'
     id 'maven-publish'
 }
 
@@ -22,7 +22,7 @@ loom {
 }
 
 repositories {
-    // Keep repositories minimal. Fabric Maven is configured in settings.gradle.
+    // Dependencies are intentionally kept minimal.
 }
 
 dependencies {
@@ -34,7 +34,6 @@ dependencies {
 
 processResources {
     inputs.property "version", project.version
-
     filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
@@ -52,7 +51,6 @@ java {
 
 jar {
     inputs.property "archivesName", project.archives_base_name
-
     from("LICENSE") {
         rename { "${it}_${project.archives_base_name}" }
     }
