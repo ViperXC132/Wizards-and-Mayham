@@ -1,5 +1,6 @@
 package com.viperxc.wizardsmayham;
 
+import com.viperxc.wizardsmayham.command.MagicCommands;
 import com.viperxc.wizardsmayham.item.ModItems;
 import com.viperxc.wizardsmayham.magic.MagicDataStore;
 import com.viperxc.wizardsmayham.magic.SpellRegistry;
@@ -18,6 +19,7 @@ public final class WizardsMayham implements ModInitializer {
         LOGGER.info("Initializing Wizards and Mayham core...");
         ModItems.initialize();
         SpellRegistry.initialize();
+        MagicCommands.register();
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.getTickCount() % 20 != 0) return;
