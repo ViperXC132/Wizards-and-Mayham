@@ -1,4 +1,4 @@
-name: Build
+name: Build Wizards and Mayham
 
 on:
   push:
@@ -28,3 +28,10 @@ jobs:
 
       - name: Build
         run: gradle --no-daemon build
+
+      - name: Upload mod JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: wizards-and-mayham
+          path: build/libs/*.jar
+          if-no-files-found: error
