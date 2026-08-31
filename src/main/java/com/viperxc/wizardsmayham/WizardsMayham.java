@@ -1,5 +1,6 @@
 package com.viperxc.wizardsmayham;
 
+import com.viperxc.wizardsmayham.boss.BossManager;
 import com.viperxc.wizardsmayham.command.MagicCommands;
 import com.viperxc.wizardsmayham.item.ModItems;
 import com.viperxc.wizardsmayham.magic.MagicDataStore;
@@ -19,6 +20,7 @@ public final class WizardsMayham implements ModInitializer {
         LOGGER.info("Initializing Wizards and Mayham core...");
         ModItems.initialize();
         SpellRegistry.initialize();
+        BossManager.initialize();
         MagicCommands.register();
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -26,6 +28,10 @@ public final class WizardsMayham implements ModInitializer {
             MagicDataStore store = MagicDataStore.get(server);
             server.getPlayerList().getPlayers().forEach(player -> store.get(player.getUUID()).regen());
             store.markDirty();
+            server.getAllLevels().forEach(level -> {
+                BossManager.tick(level);
+                BossManager.naturalTick(level);
+            });
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
