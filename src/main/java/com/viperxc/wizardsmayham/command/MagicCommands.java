@@ -22,10 +22,13 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 public final class MagicCommands {
-    /** Admin gate for 1.21.11 (permission API uses NameAndId; creative is a stable proxy). */
+    /** Admin gate: creative mode or singleplayer world owner (1.21.11-safe). */
     private static final Predicate<CommandSourceStack> OP = source -> {
         ServerPlayer p = source.getPlayer();
-        return p != null && p.isCreative();
+        if (p == null) return false;
+        if (p.isCreative()) return true;
+        MinecraftServer server = source.getServer();
+        return server != null && server.isSingleplayerOwner(p.getGameProfile());
     };
 
     public static void register() {
@@ -121,7 +124,10 @@ public final class MagicCommands {
 
     private static int cycle(ServerPlayer player, int slot) {
         MagicData d = data(player);
-        if (!d.magician()) return 0;
+        if (!d.magician()) {
+            player.sendSystemMessage(Component.literal("Only magicians can cycle spells. Use /magic choose magician"));
+            return 0;
+        }
         var spells = SpellRegistry.all().values().stream().toList();
         if (spells.isEmpty()) return 0;
         int current = -1;
@@ -142,6 +148,7 @@ public final class MagicCommands {
                 return 1;
             }
         }
+        player.sendSystemMessage(Component.literal("No other unlocked spell available for this slot."));
         return 0;
     }
 
@@ -151,7 +158,9 @@ public final class MagicCommands {
     }
 
     private static MagicData data(ServerPlayer p) {
-        return MagicDataStore.get(serverOf(p)).get(p.getUUID());
+        MinecraftServer server = serverOf(p);
+        if (server == null) return new MagicData();
+        return MagicDataStore.get(server).get(p.getUUID());
     }
 
     private static void dirty(MinecraftServer s) {
