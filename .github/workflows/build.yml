@@ -21,16 +21,18 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # Loom 1.15.5 is used by this project. Gradle 9.4.x is the
+      # stable toolchain used by current Fabric 1.21.11 projects.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.2.1'
+          gradle-version: '9.4.0'
 
       - name: Build
         shell: bash
         run: |
           set +e
-          gradle --no-daemon build --stacktrace 2>&1 | tee build.log
+          gradle --no-daemon --refresh-dependencies build --stacktrace 2>&1 | tee build.log
           status=${PIPESTATUS[0]}
           exit "$status"
 
