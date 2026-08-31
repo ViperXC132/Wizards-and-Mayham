@@ -3,6 +3,7 @@ package com.viperxc.wizardsmayham.item;
 import com.viperxc.wizardsmayham.magic.MagicData;
 import com.viperxc.wizardsmayham.magic.MagicDataStore;
 import com.viperxc.wizardsmayham.magic.SpellRegistry;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -21,7 +22,7 @@ public final class WandItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.PASS;
-        var server = serverPlayer.getServer();
+        var server = ((ServerLevel) serverPlayer.level()).getServer();
         if (server == null) return InteractionResult.PASS;
         MagicData data = MagicDataStore.get(server).get(serverPlayer.getUUID());
         if (!data.magician()) return InteractionResult.PASS;

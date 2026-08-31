@@ -1,6 +1,7 @@
 package com.viperxc.wizardsmayham.magic;
 
 import com.viperxc.wizardsmayham.WizardsMayham;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -22,7 +23,7 @@ public final class SpellRegistry {
     public static void cast(String id, ServerPlayer player, ItemStack wand) {
         RegisteredSpell registered = SPELLS.get(id);
         if (registered == null) return;
-        var server = player.getServer();
+        var server = ((ServerLevel) player.level()).getServer();
         if (server == null) return;
         MagicDataStore store = MagicDataStore.get(server);
         MagicData data = store.get(player.getUUID());
