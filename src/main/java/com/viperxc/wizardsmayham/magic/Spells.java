@@ -3,7 +3,6 @@ package com.viperxc.wizardsmayham.magic;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 /**
@@ -42,7 +41,7 @@ public final class Spells {
     }
 
     private static void damageArea(ServerPlayer player, float damage, double radius) {
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = (ServerLevel) player.level();
         AABB box = player.getBoundingBox().inflate(radius);
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box, e -> e != player && e.isAlive())) {
             target.hurtServer(level, player.damageSources().magic(), damage);

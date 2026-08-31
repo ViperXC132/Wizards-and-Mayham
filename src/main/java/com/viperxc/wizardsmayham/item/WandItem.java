@@ -12,18 +12,22 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public final class WandItem extends Item {
-    public WandItem(Properties properties) { super(properties); }
+    public WandItem(Properties properties) {
+        super(properties);
+    }
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.PASS;
-        MagicData data = MagicDataStore.get(serverPlayer.server).get(serverPlayer.getUUID());
+        var server = serverPlayer.getServer();
+        if (server == null) return InteractionResult.PASS;
+        MagicData data = MagicDataStore.get(server).get(serverPlayer.getUUID());
         if (!data.magician()) return InteractionResult.PASS;
         String spellId = data.loadout(data.selectedSpell());
         if (spellId != null) SpellRegistry.cast(spellId, serverPlayer, stack);
-        MagicDataStore.get(serverPlayer.server).markDirty();
+        MagicDataStore.get(server).markDirty();
         return InteractionResult.SUCCESS;
     }
 }

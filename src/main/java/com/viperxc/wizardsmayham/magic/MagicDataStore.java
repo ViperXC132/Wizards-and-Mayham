@@ -22,13 +22,16 @@ public final class MagicDataStore extends SavedData {
         MagicDataStore store = new MagicDataStore();
         CompoundTag all = tag.getCompoundOrEmpty("Players");
         for (String key : all.keySet()) {
-            try { store.players.put(UUID.fromString(key), MagicData.fromTag(all.getCompoundOrEmpty(key))); }
-            catch (IllegalArgumentException ignored) { }
+            try {
+                store.players.put(UUID.fromString(key), MagicData.fromTag(all.getCompoundOrEmpty(key)));
+            } catch (IllegalArgumentException ignored) {
+            }
         }
         return store;
     }
 
-    private MagicDataStore() { }
+    private MagicDataStore() {
+    }
 
     public static MagicDataStore get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(TYPE);
@@ -38,18 +41,12 @@ public final class MagicDataStore extends SavedData {
         return players.computeIfAbsent(uuid, ignored -> new MagicData());
     }
 
-    public void markDirty() { setDirty(); }
+    public void markDirty() {
+        setDirty();
+    }
 
     private CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
-        CompoundTag all = new CompoundTag();
-        players.forEach((uuid, data) -> all.put(uuid.toString(), data.toTag()));
-        tag.put("Players", all);
-        return tag;
-    }
-
-    @Override
-    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag all = new CompoundTag();
         players.forEach((uuid, data) -> all.put(uuid.toString(), data.toTag()));
         tag.put("Players", all);

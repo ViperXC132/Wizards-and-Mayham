@@ -2,24 +2,17 @@ package com.viperxc.wizardsmayham.boss;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Blaze;
-import net.minecraft.world.entity.raid.Ravager;
-import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.entity.monster.Stray;
-import net.minecraft.world.entity.monster.Skeleton;
-import net.minecraft.world.entity.monster.WitherSkeleton;
-import net.minecraft.world.entity.monster.Evoker;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,13 +81,12 @@ public final class BossManager {
 
     private static void specialAbility(ServerLevel level, Active active) {
         LivingEntity boss = active.entity();
-        if (boss instanceof Ravager) {
-            for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, boss.getBoundingBox().inflate(5), e -> e != boss && e.isAlive()))
-                target.hurtServer(level, boss.damageSources().mobAttack(boss), 12.0f);
-            return;
+        // Area damage for all bosses (no hard dependency on specific entity subclasses)
+        double radius = EntityType.RAVAGER.equals(boss.getType()) ? 5.0 : 7.0;
+        float dmg = EntityType.RAVAGER.equals(boss.getType()) ? 12.0f : 8.0f;
+        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, boss.getBoundingBox().inflate(radius), e -> e != boss && e.isAlive())) {
+            target.hurtServer(level, boss.damageSources().magic(), dmg);
         }
-        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, boss.getBoundingBox().inflate(7), e -> e != boss && e.isAlive()))
-            target.hurtServer(level, boss.damageSources().magic(), 8.0f);
     }
 
     public static void naturalTick(ServerLevel level) {
@@ -102,7 +94,7 @@ public final class BossManager {
         ServerPlayer player = level.players().get(level.random.nextInt(level.players().size()));
         int x = player.blockPosition().getX() + level.random.nextInt(1001) - 500;
         int z = player.blockPosition().getZ() + level.random.nextInt(1001) - 500;
-        BlockPos pos = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
+        BlockPos pos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
         if (!level.getBlockState(pos.below()).isSolidRender()) return;
         if (NATURAL_SPAWN_HISTORY.stream().anyMatch(old -> old.distSqr(pos) < 2000L * 2000L)) return;
         BossSpec spec = BOSSES.get(level.random.nextInt(BOSSES.size()));

@@ -22,7 +22,9 @@ public final class SpellRegistry {
     public static void cast(String id, ServerPlayer player, ItemStack wand) {
         RegisteredSpell registered = SPELLS.get(id);
         if (registered == null) return;
-        MagicDataStore store = MagicDataStore.get(player.server);
+        var server = player.getServer();
+        if (server == null) return;
+        MagicDataStore store = MagicDataStore.get(server);
         MagicData data = store.get(player.getUUID());
         if (!data.magician() || data.wandLevel() < registered.level() || data.mana() < registered.manaCost()) return;
         data.mana(data.mana() - registered.manaCost());
