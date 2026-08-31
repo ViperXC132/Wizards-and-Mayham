@@ -91,7 +91,8 @@ public final class MagicCommands {
                                     dirty(serverOf(ctx.getSource().getPlayerOrException()));
                                     return ok(ctx, "Worthiness set.");
                                 })))
-                        .then(Commands.literal("config").requires(OP)
+                        // Available in all gamemodes (no OP gate).
+                        .then(Commands.literal("config")
                                 .executes(ctx -> ok(ctx, "Admin configuration framework is enabled; values are server-authoritative.")))
                         .then(Commands.literal("help").executes(ctx -> {
                             ctx.getSource().sendSuccess(() -> Component.literal("/magic choose <magician|human> | /magic cycle <slot> | /magic summon <boss> | /magic give | /magic config | /magic help"), false);
